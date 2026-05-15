@@ -1,0 +1,8 @@
+# Bearer token for bridge auth. Set this to the same value as your Gizmo
+# AI Gateway token (cf_api_token) — single Keychain entry, two header
+# names. Or generate a fresh random value: openssl rand -hex 32.
+#
+# This file is parsed by Cloudflare's Deploy-to-Cloudflare wizard to
+# present a SANDBOX_API_KEY input field during deployment. See:
+# https://developers.cloudflare.com/changelog/post/2025-07-01-workers-deploy-button-supports-environment-variables-and-secrets/
+SANDBOX_API_KEY=

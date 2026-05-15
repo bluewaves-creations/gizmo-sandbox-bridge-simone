@@ -1,0 +1,76 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "gizmo-sandbox-bridge-simone",
+  "main": "src/index.ts",
+  // Mirrors the upstream cloudflare/sandbox-sdk/bridge/worker compatibility date.
+  // Bump in tandem with the @cloudflare/sandbox version pin in package.json.
+  "compatibility_date": "2025-05-06",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  // The Sandbox Durable Object + its container image.
+  // Bump the migration tag whenever new_sqlite_classes changes.
+  "containers": [
+    {
+      "class_name": "Sandbox",
+      // Custom Dockerfile extends cloudflare/sandbox:0.9.2 with the Gizmo
+      // skill stack (xhtml2pdf, reportlab, pyhanko, ebooklib, matplotlib, ...).
+      "image": "./Dockerfile",
+      // "basic" (1 GiB RAM / 4 GB disk) is the recommended default for Gizmo:
+      // pdf-factory's xhtml2pdf+reportlab+lxml stack peaks ~400-600 MiB; "lite"
+      // (256 MiB) would OOM. Upgrade to "standard-1" (4 GiB / 8 GB) for heavy
+      // multi-user workloads.
+      "instance_type": "basic",
+      "max_instances": 5
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "class_name": "Sandbox",
+        "name": "Sandbox"
+      },
+      {
+        "class_name": "WarmPool",
+        "name": "WarmPool"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "new_sqlite_classes": ["Sandbox"],
+      "tag": "v1"
+    },
+    {
+      "new_sqlite_classes": ["WarmPool"],
+      "tag": "v2"
+    }
+  ],
+  // R2 backups are intentionally NOT wired. Gizmo's design is per-discussion
+  // ephemeral sandboxes — outputs flow back to the agent immediately, deps are
+  // baked into the Dockerfile, and skill files re-upload on wake (idempotent).
+  // Adding R2 backups here is a separate plan if profiling shows wake-time pain.
+  // Cron trigger — primes the warm pool so the alarm loop starts on deploy.
+  "triggers": {
+    "crons": ["* * * * *"]
+  },
+  // Required secrets. The Deploy-to-Cloudflare wizard reads `.dev.vars.example`
+  // at the repo root to prompt the user for SANDBOX_API_KEY during deployment.
+  // The `secrets.required` block (March 2026, currently experimental) is a
+  // second guardrail — `wrangler deploy` and `wrangler versions upload` fail
+  // with a clear error if a listed secret isn't configured on the worker.
+  // See: developers.cloudflare.com/workers/wrangler/configuration#secrets-configuration-property
+  // Recommended value: same as your Gizmo AI Gateway token (cf_api_token) so a
+  // single Keychain entry serves both bridge + gateway.
+  "secrets": {
+    "required": ["SANDBOX_API_KEY"]
+  },
+  "vars": {
+    // Target number of pre-warmed containers (0 = disabled, no surprise bills).
+    "WARM_POOL_TARGET": "0",
+    // How often the pool alarm checks health and replenishes containers (ms).
+    "WARM_POOL_REFRESH_INTERVAL": "10000"
+  },
+  "preview_urls": false
+}

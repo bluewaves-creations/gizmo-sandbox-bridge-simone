@@ -1,0 +1,42 @@
+{
+  "name": "gizmo-sandbox-bridge-simone",
+  "version": "0.9.2",
+  "type": "module",
+  "private": true,
+  "description": "Cloudflare Worker bridge for Gizmo NXT skill script execution. Exposes the @cloudflare/sandbox HTTP API for the Gizmo iOS+macOS app, BYO Cloudflare account.",
+  "license": "MIT",
+  "homepage": "https://github.com/bluewaves-creations/gizmo-sandbox-bridge",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/bluewaves-creations/gizmo-sandbox-bridge.git"
+  },
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "start": "wrangler dev",
+    "cf-typegen": "wrangler types",
+    "typecheck": "tsc --noEmit",
+    "health-check": "bash script/health-check.sh"
+  },
+  "devDependencies": {
+    "@cloudflare/sandbox": "0.9.2",
+    "@cloudflare/workers-types": "^4.20251126.0",
+    "@types/node": "^24.10.1",
+    "hono": "^4.7.11",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.76.0"
+  },
+  "cloudflare": {
+    "bindings": {
+      "SANDBOX_API_KEY": {
+        "description": "Bearer token for bridge auth. Set to the same value as your Gizmo AI Gateway token (cf_api_token) so a single Keychain entry serves both surfaces. Generate with `openssl rand -hex 32` if you prefer a separate token."
+      },
+      "WARM_POOL_TARGET": {
+        "description": "Number of pre-warmed containers to keep ready (0 disables the warm pool — recommended for personal use to avoid surprise bills)."
+      },
+      "WARM_POOL_REFRESH_INTERVAL": {
+        "description": "Milliseconds between warm pool health checks (default: 10000)."
+      }
+    }
+  }
+}

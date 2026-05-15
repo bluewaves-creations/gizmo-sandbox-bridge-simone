@@ -1,0 +1,15 @@
+node_modules/
+.wrangler/
+dist/
+# Local-dev secret files. The .example variants are committed to seed
+# Cloudflare's Deploy-to-Cloudflare wizard secret prompts (see CF July 2025
+# changelog) — explicitly un-ignored below.
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+worker-configuration.d.ts
